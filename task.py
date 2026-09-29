@@ -15,17 +15,33 @@ def show_tasks():
 
 def add_task():
 
-    title = input("Введите задачу: ")
+    title = input("Введите задачу: ").strip()
 
-    cursor.execute(
-        "INSERT INTO tasks (title, completed) VALUES (%s, %s)",
-        (title, False)
-    )
+    if title == "":
+        print("Название задачи не может быть пустым!")
+        return
 
-    connection.commit()
+    title = title.capitalize()
+
+    if len(title) < 3:
+        print("Название задачи слишком короткое!")
+        return
+
+    if len(title) > 50:
+        print("Название задачи слишком длинное!")
+        return
+
+    task = get_task_by_title(title)
+
+    if task is not None:
+        print("Такая задача уже существует!")
+        return
+
+    create_task(title)
+
+    print("Задача добавлена!\n")
 
 def complete_task():
-
     try:
         task_id = int(input("Введите id задачи: "))
     except ValueError:
@@ -64,9 +80,33 @@ def edit_task():
 
     if task is None:
         print("Такой задачи нет!")
-    else:
-        connection.commit()
-        print("Задача изменена!")
+        return
+
+    new_title = input("Введите новое название задачи: ").strip()
+
+    new_title = new_title.capitalize()
+
+    if len(new_title) < 3:
+        print("Название задачи слишком короткое!")
+        return
+    
+    if len(new_title) > 50:
+        print("Название задачи слишком длинное!")
+        return
+
+    if new_title == task[1]:
+        print("Такое название уже установлено!")
+        return
+
+    existing_task = get_task_by_title(new_title)
+
+    if existing_task is not None and existing_task[0] != task_id:
+        print("Такая задача уже существует!")
+        return
+
+    update_task_title(task_id, new_title)
+
+    print("Задача изменена!")
 
 def find_task():
 
