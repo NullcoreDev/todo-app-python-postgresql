@@ -1,11 +1,10 @@
-from database import connection, cursor
+from database import connection
+from task_repository import get_tasks, create_task, mark_task_completed, delete_task_by_id, update_task_title, get_task_by_id, get_task_by_title
 
 def show_tasks():
-    cursor.execute(
-        "SELECT * FROM tasks ORDER BY id"
-    )
 
-    tasks = cursor.fetchall()
+    tasks = get_tasks()
+
     for task in tasks:
         if task[2]:
             result = "✓ Выполнено"
@@ -33,15 +32,11 @@ def complete_task():
         print("Нужно ввести число!")
         return
 
-    cursor.execute(
-        "UPDATE tasks SET completed = True WHERE id = %s",
-        (task_id,)
-    )    
+    result = mark_task_completed(task_id)
 
-    if cursor.rowcount == 0:
+    if result == 0:
         print("Такой задачи нет!")
     else:
-        connection.commit()
         print("Задача выполнена!")
 
 def delete_task():
@@ -51,15 +46,11 @@ def delete_task():
         print("Нужно ввести число!")
         return
 
-    cursor.execute(
-        "DELETE FROM tasks WHERE id = %s",
-        (task_id,)
-        )
+    result = delete_task_by_id(task_id)
 
-    if cursor.rowcount == 0:
+    if result == 0:
         print("Такой задачи нет!")
     else:
-        connection.commit()
         print("Задача удалена!")
 
 def edit_task():
@@ -69,14 +60,9 @@ def edit_task():
         print("Нужно ввести число!")
         return
 
-    new_title = input("Введите новое название задачи: ")
+    task = get_task_by_id(task_id)
 
-    cursor.execute(
-        "UPDATE tasks SET title = %s WHERE id = %s",
-        (new_title, task_id)
-    )
-
-    if cursor.rowcount == 0:
+    if task is None:
         print("Такой задачи нет!")
     else:
         connection.commit()
@@ -90,12 +76,7 @@ def find_task():
         print("Нужно ввести число!")
         return
     
-    cursor.execute(
-        "SELECT * FROM tasks WHERE id = %s",
-        (task_id,)
-        )
-
-    task = cursor.fetchone()
+    task = get_task_by_id(task_id)
 
     if task is None:
         print("Такой задачи нет!")
@@ -154,6 +135,5 @@ while True:
     else:
         print("Такого пункта нет!")
 
-cursor.close()
 connection.close()
 print("Программа завершена!")
